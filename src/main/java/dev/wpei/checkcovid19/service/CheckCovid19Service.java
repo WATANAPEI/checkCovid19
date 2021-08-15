@@ -41,7 +41,7 @@ public class CheckCovid19Service {
     }
     public String getLatestCovidLog() throws IOException, InterruptedException {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
-        OffsetDateTime dayBeforeYesterday = OffsetDateTime.now().minusDays(2);
+        OffsetDateTime dayBeforeYesterday = OffsetDateTime.now().minusDays(3);
         String todayString = formatter.format(dayBeforeYesterday);
 
         String urlToFetchLatestCovidInfo = BASE_COVID_INFO_URL + "?date=" + todayString;
