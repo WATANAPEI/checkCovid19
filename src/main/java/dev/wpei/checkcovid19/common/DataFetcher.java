@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -14,7 +15,7 @@ public class DataFetcher {
     private static final Logger logger = LoggerFactory.getLogger(DataFetcher.class);
 
     public DataFetcher() {}
-    public String getHttpResponseBody(String url) throws IOException, InterruptedException {
+    public String getHttpResponseBody(String url) {
         HttpClient client = HttpClient.newHttpClient();
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -28,8 +29,7 @@ public class DataFetcher {
             }
             return response.body();
         } catch(IOException | InterruptedException e) {
-            LogClient.error(logger, e.getMessage());
-            throw e;
+            throw new RuntimeException(e);
         }
     }
 }

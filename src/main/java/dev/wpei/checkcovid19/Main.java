@@ -13,7 +13,7 @@ public class Main {
 		try {
 			checkCovid19Service.getLatestCovidLog();
 		} catch(Exception e) {
-		    LogClient.error(logger, "application failed.");
+		    LogClient.error(logger, "application failed." + e);
 		    System.exit(1);
 		}
 
