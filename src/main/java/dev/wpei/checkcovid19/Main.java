@@ -1,19 +1,17 @@
 package dev.wpei.checkcovid19;
 
-import dev.wpei.checkcovid19.common.LogClient;
 import dev.wpei.checkcovid19.service.CheckCovid19Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class Main {
-	private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) {
 		CheckCovid19Service checkCovid19Service = new CheckCovid19Service();
 		try {
-			checkCovid19Service.getLatestCovidLog();
+			checkCovid19Service.saveLatestPatientsNumberCSV();
 		} catch(Exception e) {
-		    LogClient.error(logger, "application failed." + e);
+		    log.error("application failed." + e);
 		    System.exit(1);
 		}
 
