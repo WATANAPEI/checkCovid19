@@ -14,6 +14,17 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>aws-java-sdk-bom</artifactId>
+				<version>1.12.49</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>com.opencsv</groupId>
@@ -37,7 +48,6 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<!-- 今回はロガーを依存関係として追加します -->
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.2.3</version>
@@ -47,6 +57,10 @@
 			<artifactId>junit-jupiter-engine</artifactId>
 			<version>5.7.2</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>

@@ -40,16 +40,14 @@ public class CheckCovid19Service {
     }
     public void saveLatestPatientsNumberCSV() {
         // generate date string format: yyyyMMdd
-        String todayString = generateDateFrom(3);
+        String todayString = generateDateFrom(0);
+        String dateOfData = generateDateFrom(3);
         // get response
-        Response response = fetchPatientsNumberPerDate(todayString);
+        Response response = fetchPatientsNumberPerDate(dateOfData);
         //save response data as csv file
         saveCsvToLocal(response.getItemList(), todayString);
     }
     private String generateDateFrom(int minusDay) {
-        if (minusDay >= 0) {
-            throw new IllegalArgumentException("minusDay must be less than 0.");
-        }
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
         OffsetDateTime dayBeforeYesterday = OffsetDateTime.now().minusDays(minusDay);
         return formatter.format(dayBeforeYesterday);
