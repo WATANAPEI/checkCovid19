@@ -1,4 +1,4 @@
-package dev.wpei.checkcovid19.common;
+package dev.wpei.checkcovid19.infra;
 
 import lombok.extern.slf4j.Slf4j;
 

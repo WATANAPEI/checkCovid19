@@ -1,4 +1,4 @@
-package dev.wpei.checkcovid19.common;
+package dev.wpei.checkcovid19.infra;
 
 import org.slf4j.Logger;
 
