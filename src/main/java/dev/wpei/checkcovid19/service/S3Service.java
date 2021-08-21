@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.UUID;
@@ -50,6 +51,31 @@ public class S3Service {
         }
 
     }
+
+    public void saveCsvToS3(List<CovidPatientItem> covidPatientItemList, InputStream is, long contentLength) {
+        //String bucketName = "lambda-artifacts-fs2wafw43";
+        String objectKey = UUID.randomUUID().toString();
+        //saveCsvToLocal(itemList, saveFile);
+        log.debug("Putting object "+ objectKey +" into bucket "+bucketName);
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
+        try(S3Client s3Client = S3Client.builder()
+                .region(Region.US_EAST_2)
+                .credentialsProvider(credentialsProvider)
+                .build();) {
+
+            try {
+                String result = putS3Object(s3Client, bucketName, objectKey, is, contentLength);
+                log.debug("Tag info: " +result);
+
+
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
     private String putS3Object(S3Client s3, String bucketName, String objectKey, File localFile) throws IOException {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
@@ -58,6 +84,19 @@ public class S3Service {
                     .build();
 
             PutObjectResponse putObjectResponse = s3.putObject(putObjectRequest, RequestBody.fromFile(localFile));
+            return putObjectResponse.eTag();
+        } catch(S3Exception e) {
+            throw new IOException(e);
+        }
+    }
+    private String putS3Object(S3Client s3, String bucketName, String objectKey, InputStream is, long contentLength) throws IOException {
+        try {
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectKey)
+                    .build();
+
+            PutObjectResponse putObjectResponse = s3.putObject(putObjectRequest, RequestBody.fromInputStream(is, contentLength));
             return putObjectResponse.eTag();
         } catch(S3Exception e) {
             throw new IOException(e);
