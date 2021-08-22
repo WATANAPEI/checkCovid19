@@ -68,14 +68,14 @@ class LoadLocalFileAndSaveS3 {
 						.build();
 				try (
 						final ResponseInputStream<GetObjectResponse> is = sourceS3Client.getObject(request);
-						//BufferedInputStream is = new BufferedInputStream(is)
+						BufferedInputStream bs = new BufferedInputStream(is, 1024*1024)
 					) {
 					PutObjectRequest putObjectRequest = PutObjectRequest.builder()
 							.bucket(targetBucketName)
 							.key(sourceFileKey)
 							.build();
 
-					PutObjectResponse putObjectResponse = targetS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(is, contentLength));
+					PutObjectResponse putObjectResponse = targetS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(bs, contentLength));
 					printMemoryStat();
 					return putObjectResponse.eTag();
 				}
