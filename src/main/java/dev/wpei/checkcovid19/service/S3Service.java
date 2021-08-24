@@ -3,35 +3,29 @@ package dev.wpei.checkcovid19.service;
 import dev.wpei.checkcovid19.model.CovidPatientItem;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.PutObjectResponse;
-import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
+import java.io.*;
 import java.util.List;
 import java.util.UUID;
 
 @Slf4j
 public class S3Service {
-    private String bucketName;
+    private String sinkBucketName;
     private Region region;
 
-    public S3Service(String bucketName, Region region) {
-        this.bucketName = bucketName;
+    public S3Service(String sinkBucketName, Region region) {
+        this.sinkBucketName = sinkBucketName;
         this.region = region;
     }
 
     public void saveCsvToS3(List<CovidPatientItem> covidPatientItemList, File saveFile) {
-        //String bucketName = "lambda-artifacts-fs2wafw43";
         String objectKey = UUID.randomUUID().toString();
-        //saveCsvToLocal(itemList, saveFile);
-        log.debug("Putting object "+ objectKey +" into bucket "+bucketName);
+        log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
         try(S3Client s3Client = S3Client.builder()
                 .region(Region.US_EAST_2)
@@ -39,9 +33,8 @@ public class S3Service {
                 .build();) {
 
             try {
-                String result = putS3Object(s3Client, bucketName, objectKey, saveFile);
+                String result = putS3Object(s3Client, sinkBucketName, objectKey, saveFile);
                 log.debug("Tag info: " +result);
-
 
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -53,10 +46,8 @@ public class S3Service {
     }
 
     public void saveCsvToS3(List<CovidPatientItem> covidPatientItemList, InputStream is, long contentLength) {
-        //String bucketName = "lambda-artifacts-fs2wafw43";
         String objectKey = UUID.randomUUID().toString();
-        //saveCsvToLocal(itemList, saveFile);
-        log.debug("Putting object "+ objectKey +" into bucket "+bucketName);
+        log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
         try(S3Client s3Client = S3Client.builder()
                 .region(Region.US_EAST_2)
@@ -64,7 +55,7 @@ public class S3Service {
                 .build();) {
 
             try {
-                String result = putS3Object(s3Client, bucketName, objectKey, is, contentLength);
+                String result = putS3Object(s3Client, sinkBucketName, objectKey, is, contentLength);
                 log.debug("Tag info: " +result);
 
 
@@ -101,5 +92,79 @@ public class S3Service {
         } catch(S3Exception e) {
             throw new IOException(e);
         }
+    }
+
+    public long fetchS3FileSize(String objectKey) {
+        // create s3 client
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
+        try(S3Client s3Client = S3Client.builder()
+                .region(region)
+                .credentialsProvider(credentialsProvider)
+                .build();) {
+            try {
+                // create object to check s3 file meta data
+                HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                        .bucket(sinkBucketName)
+                        .key(objectKey)
+                        .build();
+                HeadObjectResponse headObjectResponse = s3Client.headObject(headObjectRequest);
+                long contentLength = headObjectResponse.contentLength();
+                System.out.println("content-length: " + contentLength +"[byte]");
+                return contentLength;
+
+            } catch (NoSuchKeyException e) {
+                throw new RuntimeException(e);
+            }
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+    public String uploadByStream(String sourceBucketName, String sourceFileKey) {
+        if(sinkBucketName == null) {
+            throw new IllegalStateException("sink bucket name or source bucket name is not set yet.");
+        }
+        ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
+        // create s3 clients for target bucket and source bucket
+        try(S3Client targetS3Client = S3Client.builder()
+                .region(region)
+                .credentialsProvider(credentialsProvider)
+                .build();
+            S3Client sourceS3Client = S3Client.builder()
+                    .region(region)
+                    .credentialsProvider(credentialsProvider) // In production environment, credential is not the same
+                    .build();) {
+            try {
+                // check source file size in s3
+                long contentLength = fetchS3FileSize(sourceFileKey);
+
+                // make GetObjectRequest to download s3 file
+                final GetObjectRequest request = GetObjectRequest.builder()
+                        .bucket(sourceBucketName)
+                        .key(sourceFileKey)
+                        .build();
+                try (
+                        final ResponseInputStream<GetObjectResponse> is = sourceS3Client.getObject(request);
+                        BufferedInputStream bs = new BufferedInputStream(is, 1024*1024)
+                ) {
+                    // make PutObjectRequest to upload s3 file
+                    PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                            .bucket(sinkBucketName)
+                            .key(sourceFileKey)
+                            .build();
+
+                    PutObjectResponse putObjectResponse = targetS3Client.putObject(putObjectRequest, RequestBody.fromInputStream(bs, contentLength));
+                    return putObjectResponse.eTag();
+                }
+
+            } catch (NoSuchKeyException e) {
+                throw new RuntimeException(e);
+            }
+
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }
