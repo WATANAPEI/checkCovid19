@@ -47,6 +47,33 @@ public class S3Service {
 
     }
 
+    /**
+     *
+     * @param csvString
+     * @param objectKey
+     */
+    public void putFile(String csvString, String objectKey) {
+        log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
+        //ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
+        try(S3Client s3Client = S3Client.builder()
+                .region(Region.US_EAST_2)
+         //       .credentialsProvider(credentialsProvider)
+                .build();) {
+
+                PutObjectRequest request = PutObjectRequest.builder()
+                        .bucket(sinkBucketName)
+                        .key(objectKey)
+                        .build();
+                PutObjectResponse result = s3Client.putObject(request, RequestBody.fromString(csvString));
+                log.debug("Tag info: " +result);
+
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
     public void putFile(List<DailyPatient> dailyPatientList, InputStream is, long contentLength) {
         String objectKey = UUID.randomUUID().toString();
         log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
