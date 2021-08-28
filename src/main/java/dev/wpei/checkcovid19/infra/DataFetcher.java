@@ -11,7 +11,6 @@ import java.net.http.HttpResponse;
 
 @Slf4j
 public class DataFetcher {
-    public DataFetcher() {}
     public String getHttpResponseBody(String url) {
         HttpClient client = HttpClient.newHttpClient();
 

@@ -1,6 +1,6 @@
 package dev.wpei.checkcovid19.service;
 
-import dev.wpei.checkcovid19.model.CovidPatientItem;
+import dev.wpei.checkcovid19.model.DailyPatient;
 import lombok.extern.slf4j.Slf4j;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,18 +24,19 @@ public class S3Service {
         this.region = region;
     }
 
-    public void saveCsvToS3(List<CovidPatientItem> covidPatientItemList, File saveFile) {
+    public String putFile(Path saveFile) {
         String objectKey = UUID.randomUUID().toString();
         log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
         try(S3Client s3Client = S3Client.builder()
-                .region(Region.US_EAST_2)
+                .region(region)
                 .credentialsProvider(credentialsProvider)
                 .build();) {
 
             try {
                 String result = putS3Object(s3Client, sinkBucketName, objectKey, saveFile);
                 log.debug("Tag info: " +result);
+                return result;
 
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -45,7 +47,7 @@ public class S3Service {
 
     }
 
-    public void saveCsvToS3(List<CovidPatientItem> covidPatientItemList, InputStream is, long contentLength) {
+    public void putFile(List<DailyPatient> dailyPatientList, InputStream is, long contentLength) {
         String objectKey = UUID.randomUUID().toString();
         log.debug("Putting object "+ objectKey +" into bucket "+ sinkBucketName);
         ProfileCredentialsProvider credentialsProvider = ProfileCredentialsProvider.create("default");
@@ -67,14 +69,14 @@ public class S3Service {
         }
 
     }
-    private String putS3Object(S3Client s3, String bucketName, String objectKey, File localFile) throws IOException {
+    private String putS3Object(S3Client s3, String bucketName, String objectKey, Path localFilePath) throws IOException {
         try {
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectKey)
                     .build();
 
-            PutObjectResponse putObjectResponse = s3.putObject(putObjectRequest, RequestBody.fromFile(localFile));
+            PutObjectResponse putObjectResponse = s3.putObject(putObjectRequest, RequestBody.fromFile(localFilePath));
             return putObjectResponse.eTag();
         } catch(S3Exception e) {
             throw new IOException(e);
