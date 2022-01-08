@@ -15,8 +15,8 @@ class LoadLocalFileAndSaveS3 {
 
 	public static void uploadLocalFile() throws IOException {
 		printMemoryStat();
-		Path sourceFile = Paths.get("target", "100M.dummy");
-		Path targetFile = Paths.get("target", "output");
+		Path sourceFile = Paths.get("src", "test", "100M.dummy");
+		Path targetFile = Paths.get("src", "test", "out.dummy");
 		try(
 				InputStream is = Files.newInputStream(sourceFile);
 				BufferedInputStream bis = new BufferedInputStream(is);
@@ -67,9 +67,9 @@ class MainTests {
 
 	@Test
 	public void testS3DownloadAndSaveOtherS3Test() {
-		String sinkBucketName = "lambda-artifacts-fs2wafw43";
-		String sourceBucketName = "upload-test-ffwek32fsda";
-		String sourceFileKey = "100M.dummy";
+		String sourceBucketName = "lambda-artifacts-fs2wafw43";
+		String sinkBucketName = "upload-test-ffwek32fsda";
+		String sourceFileKey = "1M.dummy";
 		Region region = Region.US_EAST_2;
 		S3Service s3Service = new S3Service(sinkBucketName, region);
 		String eTag = s3Service.uploadByStream(sourceBucketName, sourceFileKey);

@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>dev.wpei</groupId>
-	<artifactId>check-covid19</artifactId>
+	<artifactId>check_covid19</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>check-covid19</name>
+	<name>check_covid19</name>
 	<description>Demo project to use aws services</description>
 	<packaging>jar</packaging>
 	<properties>
@@ -80,8 +80,13 @@
 	</dependencies>
 
 	<build>
-		<finalName>check_covid19</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M5</version>
+			</plugin>
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
