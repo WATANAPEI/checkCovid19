@@ -37,3 +37,7 @@ build/
 
 ## output file ###
 *.csv
+
+## test file ##
+100M.dummy
+out.dummy

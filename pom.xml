@@ -3,9 +3,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>dev.wpei</groupId>
-	<artifactId>check-covid19</artifactId>
+	<artifactId>check_covid19</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>check-covid19</name>
+	<name>check_covid19</name>
 	<description>Demo project to use aws services</description>
 	<packaging>jar</packaging>
 	<properties>
@@ -63,6 +63,10 @@
 			<artifactId>s3</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>lambda</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-lambda-java-core</artifactId>
 			<version>1.2.1</version>
@@ -80,8 +84,31 @@
 	</dependencies>
 
 	<build>
-		<finalName>check_covid19</finalName>
+		<finalName>${project.artifactId}</finalName>
 		<plugins>
+            <plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M5</version>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.1.2</version>
+				<configuration>
+					<includeScope>runtime</includeScope>
+				</configuration>
+				<executions>
+					<execution>
+						<id>copy-dependencies</id>
+						<phase>package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+	<!--
             <plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-shade-plugin</artifactId>
@@ -105,6 +132,7 @@
 					</execution>
 				</executions>
 			</plugin>
+			-->
 		</plugins>
 	</build>
 
